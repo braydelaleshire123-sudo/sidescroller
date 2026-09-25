@@ -17,7 +17,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:pixelated}
 <body>
 <div id="game">
 <canvas id="c" width="1100" height="600"></canvas>
-<div id="hint">SPACE / ↑ / CLICK = JUMP</div>
+<div id="hint">SPACE / ↑ / CLICK = JUMP • X = TURBO</div>
 <button id="touch">JUMP</button>
 </div>
 <script>
@@ -25,12 +25,13 @@ const canvas=document.getElementById("c"),ctx=canvas.getContext("2d"),W=1100,H=6
 ctx.imageSmoothingEnabled=false;
 let state="title",distance=0,score=0,speed=7,high=Number(localStorage.dinoHigh||0);
 let last=0,spawn=0,groundY=475,obstacles=[],clouds=[];
+let turbo=false,turboTimer=0;
 const dino={x:145,y:0,w:82,h:72,vy:0,onGround:true,frame:0};
 
 function rect(x,y,w,h,fill="#000"){ctx.fillStyle=fill;ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))}
 function text(t,x,y,size=22,align="left"){ctx.fillStyle="#000";ctx.font=`bold ${size}px "Courier New"`;ctx.textAlign=align;ctx.fillText(t,x,y)}
 function reset(){
- distance=0;score=0;speed=7;spawn=0;obstacles=[];clouds=[];
+ distance=0;score=0;speed=7;spawn=0;obstacles=[];clouds=[];turbo=false;turboTimer=0;
  dino.y=groundY-dino.h;dino.vy=0;dino.onGround=true;dino.frame=0;
  for(let i=0;i<6;i++)clouds.push({x:80+i*210+Math.random()*120,y:65+Math.random()*110,w:55+Math.random()*65});
  state="play";
@@ -39,140 +40,90 @@ function jump(){
  if(state==="title"||state==="gameover"){reset();return}
  if(dino.onGround){dino.vy=-16.8;dino.onGround=false}
 }
+function activateTurbo(){
+ if(state==="title"||state==="gameover")reset();
+ if(state!=="play")return;
+ turbo=true;turboTimer=8;
+}
 function makeObstacle(){
- const r=Math.random();
- let o;
- if(r<.18){
-   o={x:W+25,y:groundY-75,w:30,h:75,type:"tallCactus"};
- }else if(r<.36){
-   o={x:W+25,y:groundY-48,w:62,h:48,type:"doubleCactus"};
- }else if(r<.52){
-   o={x:W+25,y:groundY-35,w:52,h:35,type:"rock"};
- }else if(r<.67){
-   o={x:W+25,y:groundY-29,w:70,h:29,type:"log"};
- }else if(r<.82){
-   o={x:W+25,y:groundY-43,w:48,h:43,type:"stump"};
- }else{
-   o={x:W+25,y:groundY-32,w:86,h:32,type:"spikes"};
- }
+ const r=Math.random(); let o;
+ if(r<.18)o={x:W+25,y:groundY-75,w:30,h:75,type:"tallCactus"};
+ else if(r<.36)o={x:W+25,y:groundY-48,w:62,h:48,type:"doubleCactus"};
+ else if(r<.52)o={x:W+25,y:groundY-35,w:52,h:35,type:"rock"};
+ else if(r<.67)o={x:W+25,y:groundY-29,w:70,h:29,type:"log"};
+ else if(r<.82)o={x:W+25,y:groundY-43,w:48,h:43,type:"stump"};
+ else o={x:W+25,y:groundY-32,w:86,h:32,type:"spikes"};
  obstacles.push(o);
- // occasional paired obstacle, but with enough room to jump
- if(Math.random()<0.18 && speed<18){
-   obstacles.push({x:W+145,y:groundY-30,w:42,h:30,type:"rock"});
- }
+ if(Math.random()<0.18 && speed<18)obstacles.push({x:W+145,y:groundY-30,w:42,h:30,type:"rock"});
 }
-function collide(a,b){
- return a.x+14<b.x+b.w-7&&a.x+a.w-13>b.x+7&&a.y+10<b.y+b.h&&a.y+a.h-7>b.y;
-}
+function collide(a,b){return a.x+14<b.x+b.w-7&&a.x+a.w-13>b.x+7&&a.y+10<b.y+b.h&&a.y+a.h-7>b.y}
 
 function drawDino(){
  const x=dino.x,y=dino.y,run=Math.floor(dino.frame/5)%2;
- // Detailed 16-bit dinosaur: tail, legs, belly, neck, head, snout and eye
- rect(x+7,y+31,18,12);rect(x-5,y+38,16,10);rect(x-15,y+45,13,7); // tail
- rect(x+21,y+20,40,39); // body
- rect(x+42,y+9,25,31);rect(x+57,y+3,17,24); // neck/head
- rect(x+69,y+16,15,10);rect(x+78,y+22,8,7); // snout
- rect(x+51,y+39,20,11); // chest
- // back spikes
+ rect(x+7,y+31,18,12);rect(x-5,y+38,16,10);rect(x-15,y+45,13,7);
+ rect(x+21,y+20,40,39);rect(x+42,y+9,25,31);rect(x+57,y+3,17,24);
+ rect(x+69,y+16,15,10);rect(x+78,y+22,8,7);
+ rect(x+51,y+39,20,11);
  rect(x+25,y+14,9,8);rect(x+35,y+11,9,9);rect(x+45,y+10,8,9);
- // eye
  rect(x+67,y+11,6,6,"#fff");rect(x+68,y+12,3,3);
- // mouth
  rect(x+74,y+28,10,3,"#fff");
- // arms
  rect(x+51,y+31,8,20);rect(x+57,y+48,12,4);
- // legs, animated
- if(!dino.onGround||run===0){
-   rect(x+27,y+53,13,14);rect(x+22,y+66,18,5);
-   rect(x+53,y+53,13,10);rect(x+61,y+63,16,6);
- }else{
-   rect(x+27,y+53,13,10);rect(x+20,y+63,18,6);
-   rect(x+53,y+53,13,14);rect(x+53,y+66,18,5);
- }
- // white highlight gives 16-bit depth
+ if(!dino.onGround||run===0){rect(x+27,y+53,13,14);rect(x+22,y+66,18,5);rect(x+53,y+53,13,10);rect(x+61,y+63,16,6)}
+ else{rect(x+27,y+53,13,10);rect(x+20,y+63,18,6);rect(x+53,y+53,13,14);rect(x+53,y+66,18,5)}
  rect(x+29,y+25,8,5,"#fff");rect(x+38,y+30,5,4,"#fff");
 }
-
 function drawObstacle(o){
  const x=o.x,y=o.y;
- if(o.type==="tallCactus"){
-   rect(x+9,y,16,o.h);rect(x+1,y+23,10,8);rect(x-2,y+15,9,10);
-   rect(x+23,y+35,11,9);rect(x+24,y+27,9,10);
-   rect(x+4,y+10,5,8,"#fff");
- }else if(o.type==="doubleCactus"){
-   rect(x+7,y+9,17,39);rect(x+35,y,17,48);
-   rect(x,y+20,11,9);rect(x-2,y+12,10,11);
-   rect(x+50,y+24,12,9);rect(x+51,y+16,9,12);
-   rect(x+12,y+14,5,5,"#fff");
- }else if(o.type==="rock"){
-   rect(x+5,y+13,o.w-10,o.h-13);rect(x+14,y+5,o.w-28,10);
-   rect(x+20,y+2,16,8);rect(x+12,y+18,8,5,"#fff");
- }else if(o.type==="log"){
-   rect(x,y+7,o.w,o.h-7);rect(x+7,y,o.w-14,10);
-   rect(x+8,y+10,5,13,"#fff");rect(x+o.w-13,y+11,5,12,"#fff");
- }else if(o.type==="stump"){
-   rect(x+5,y+12,o.w-10,o.h-12);rect(x,y+4,o.w,12);
-   rect(x+10,y+6,8,4,"#fff");rect(x+o.w-18,y+6,7,4,"#fff");
- }else{
-   rect(x,y+16,o.w,16);
-   for(let i=0;i<5;i++){rect(x+i*18+4,y+4,8,14);rect(x+i*18+7,y,3,8)}
- }
+ if(o.type==="tallCactus"){rect(x+9,y,16,o.h);rect(x+1,y+23,10,8);rect(x-2,y+15,9,10);rect(x+23,y+35,11,9);rect(x+24,y+27,9,10);rect(x+4,y+10,5,8,"#fff")}
+ else if(o.type==="doubleCactus"){rect(x+7,y+9,17,39);rect(x+35,y,17,48);rect(x,y+20,11,9);rect(x-2,y+12,10,11);rect(x+50,y+24,12,9);rect(x+51,y+16,9,12);rect(x+12,y+14,5,5,"#fff")}
+ else if(o.type==="rock"){rect(x+5,y+13,o.w-10,o.h-13);rect(x+14,y+5,o.w-28,10);rect(x+20,y+2,16,8);rect(x+12,y+18,8,5,"#fff")}
+ else if(o.type==="log"){rect(x,y+7,o.w,o.h-7);rect(x+7,y,o.w-14,10);rect(x+8,y+10,5,13,"#fff");rect(x+o.w-13,y+11,5,12,"#fff")}
+ else if(o.type==="stump"){rect(x+5,y+12,o.w-10,o.h-12);rect(x,y+4,o.w,12);rect(x+10,y+6,8,4,"#fff");rect(x+o.w-18,y+6,7,4,"#fff")}
+ else{rect(x,y+16,o.w,16);for(let i=0;i<5;i++){rect(x+i*18+4,y+4,8,14);rect(x+i*18+7,y,3,8)}}
 }
-
 function draw(){
  ctx.clearRect(0,0,W,H);
- // 16-bit sky details
  for(const c of clouds){rect(c.x,c.y,c.w,6);rect(c.x+9,c.y-6,c.w-18,6);rect(c.x+18,c.y-11,c.w-36,5)}
- text("DINO RUN",30,45,24);
- text("DIST "+String(Math.floor(distance)).padStart(5,"0"),W-30,45,20,"right");
+ text("DINO RUN",30,45,24);text("DIST "+String(Math.floor(distance)).padStart(5,"0"),W-30,45,20,"right");
  text("HI "+String(high).padStart(5,"0"),W-30,70,16,"right");
  text("SPEED "+speed.toFixed(1),30,70,16);
+ if(turbo)text("TURBO x3",W/2,48,22,"center");
  rect(0,groundY,W,5);
  for(let x=-(distance*3%64);x<W;x+=64){rect(x,groundY+14,34,4);rect(x+42,groundY+20,10,3)}
  drawDino();for(const o of obstacles)drawObstacle(o);
  if(state==="title"){
-   rect(0,0,W,H,"#fff");
-   text("DINO RUN",W/2,195,64,"center");
-   text("16-BIT • BLACK & WHITE",W/2,235,22,"center");
-   text("A REAL PIXEL DINO RUN",W/2,270,18,"center");
-   text("PRESS SPACE OR CLICK TO START",W/2,325,23,"center");
-   text("JUMP THE CACTI, ROCKS, LOGS & SPIKES",W/2,365,16,"center");
+   rect(0,0,W,H,"#fff");text("DINO RUN",W/2,195,64,"center");text("16-BIT • BLACK & WHITE",W/2,235,22,"center");
+   text("A REAL PIXEL DINO RUN",W/2,270,18,"center");text("PRESS SPACE OR CLICK TO START",W/2,325,23,"center");
+   text("JUMP THE CACTI, ROCKS, LOGS & SPIKES",W/2,365,16,"center");text("PRESS X FOR SUPER SPEED",W/2,400,18,"center");
  }
  if(state==="gameover"){
-   rect(0,0,W,H,"#fff");
-   text("GAME OVER",W/2,220,58,"center");
-   text("DISTANCE: "+Math.floor(distance),W/2,265,23,"center");
-   text("SPEED REACHED: "+speed.toFixed(1),W/2,295,17,"center");
-   text("PRESS SPACE / CLICK TO RUN AGAIN",W/2,345,20,"center");
+   rect(0,0,W,H,"#fff");text("GAME OVER",W/2,220,58,"center");text("DISTANCE: "+Math.floor(distance),W/2,265,23,"center");
+   text("SPEED REACHED: "+speed.toFixed(1),W/2,295,17,"center");text("PRESS SPACE / CLICK TO RUN AGAIN",W/2,345,20,"center");
  }
 }
-
 function loop(t){
  const dt=Math.min((t-last)/16.67,2);last=t;
  if(state==="play"){
-   distance+=speed*.018*dt;
-   score=Math.floor(distance);
-   // Noticeably faster with distance, reaching a hard but playable cap.
-   speed=Math.min(23,7+distance/95);
+   if(turbo){turboTimer-=dt/60;if(turboTimer<=0){turbo=false;turboTimer=0}}
+   const boost=turbo?3:1;
+   distance+=speed*.018*dt*boost;score=Math.floor(distance);
+   speed=Math.min(turbo?69:23,7+distance/95);
    dino.vy+=.86*dt;dino.y+=dino.vy*dt;
    if(dino.y>=groundY-dino.h){dino.y=groundY-dino.h;dino.vy=0;dino.onGround=true}
    dino.frame+=dt*speed;
    spawn-=dt;
-   if(spawn<=0){
-     makeObstacle();
-     // Faster game = shorter gaps, but never unfairly short.
-     spawn=Math.max(29,82-speed*2.15)+Math.random()*34;
-   }
-   for(const o of obstacles)o.x-=speed*dt;
+   if(spawn<=0){makeObstacle();spawn=Math.max(29,82-speed*2.15)+Math.random()*34}
+   for(const o of obstacles)o.x-=speed*dt*boost;
    obstacles=obstacles.filter(o=>o.x+o.w>-40);
-   for(const o of obstacles){
-     if(collide(dino,o)){state="gameover";high=Math.max(high,score);localStorage.dinoHigh=high;break}
-   }
-   for(const c of clouds){c.x-=speed*.10*dt;if(c.x+c.w<0)c.x=W+Math.random()*180}
+   for(const o of obstacles){if(collide(dino,o)){state="gameover";high=Math.max(high,score);localStorage.dinoHigh=high;break}}
+   for(const c of clouds){c.x-=speed*.10*dt*boost;if(c.x+c.w<0)c.x=W+Math.random()*180}
  }
  draw();requestAnimationFrame(loop);
 }
-addEventListener("keydown",e=>{if(e.code==="Space"||e.code==="ArrowUp"){e.preventDefault();jump()}});
+addEventListener("keydown",e=>{
+ if(e.code==="Space"||e.code==="ArrowUp"){e.preventDefault();jump()}
+ if(e.code==="KeyX"){e.preventDefault();activateTurbo()}
+});
 canvas.addEventListener("pointerdown",jump);
 document.getElementById("touch").addEventListener("pointerdown",e=>{e.stopPropagation();jump()});
 requestAnimationFrame(loop);
