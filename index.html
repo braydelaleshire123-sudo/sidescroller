@@ -117,14 +117,18 @@ function loop(t){
  }
  draw();requestAnimationFrame(loop);
 }
-addEventListener("keydown",e=>{
+function handleKey(e){
  const k=String(e.key||"").toLowerCase();
  const c=String(e.code||"");
  if(c==="Space"||c==="ArrowUp"||k===" "||k==="arrowup"){e.preventDefault();jump();return}
  if(c==="KeyX"||k==="x"){e.preventDefault();activateBoost(3);return}
  if(c==="KeyC"||k==="c"){e.preventDefault();activateBoost(10);return}
- if(c==="KeyZ"||k==="z"||e.keyCode===90){e.preventDefault();superJump();return}
-});
+ if(c==="KeyZ"||k==="z"||k==="Z".toLowerCase()||e.keyCode===90){
+   e.preventDefault(); superJump(); return;
+ }
+}
+window.addEventListener("keydown",handleKey);
+window.addEventListener("keypress",handleKey);
 canvas.addEventListener("pointerdown",jump);
 document.getElementById("touch").addEventListener("pointerdown",e=>{e.stopPropagation();jump()});
 document.getElementById("super").addEventListener("pointerdown",e=>{e.stopPropagation();superJump()});
