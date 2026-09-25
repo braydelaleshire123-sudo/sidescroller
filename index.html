@@ -25,7 +25,7 @@ const canvas=document.getElementById("c"),ctx=canvas.getContext("2d"),W=1100,H=6
 ctx.imageSmoothingEnabled=false;
 let state="title",distance=0,score=0,speed=7,high=Number(localStorage.dinoHigh||0);
 let last=0,spawn=0,groundY=475,obstacles=[],clouds=[];
-let turboMode=0,turboTime=0,lastSuperJump=0,nukeFlash=0,nukePower=0,audioCtx=null,musicOn=true,musicTimer=null;
+let turboMode=0,turboTime=0,lastSuperJump=0,nukeFlash=0,nukePower=0,audioCtx=null,musicOn=true,musicTimer=null,brainrot=null;
 const dino={x:145,y:0,w:82,h:72,vy:0,onGround:true,frame:0};
 function rect(x,y,w,h,fill="#000"){ctx.fillStyle=fill;ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))}
 function text(t,x,y,size=22,align="left"){ctx.fillStyle="#000";ctx.font=`bold ${size}px "Courier New"`;ctx.textAlign=align;ctx.fillText(t,x,y)}
@@ -50,7 +50,7 @@ function stopMusic(){
 }
 function reset(){
  distance=0;score=0;speed=7;spawn=0;obstacles=[];clouds=[];turboMode=0;turboTime=0;
- dino.y=groundY-dino.h;dino.vy=0;dino.onGround=true;dino.frame=0;
+ dino.y=groundY-dino.h;dino.vy=0;dino.onGround=true;dino.frame=0;brainrot=null;
  for(let i=0;i<6;i++)clouds.push({x:80+i*210+Math.random()*120,y:65+Math.random()*110,w:55+Math.random()*65});
  state="play";
  startMusic();
@@ -72,6 +72,29 @@ function nuke(){
  if(state==="title"||state==="gameover")reset();
  if(state!=="play")return;
  nukeFlash=1;nukePower=1;obstacles=[];dino.vy=-120;dino.y=groundY-dino.h-1;turboMode=0;turboTime=0;
+}
+function spawnBrainrot(){
+ if(state==="title"||state==="gameover")reset();
+ if(state!=="play")return;
+ const types=[
+  {name:"BRAINROT",kind:"blob"},
+  {name:"TOAST",kind:"toast"},
+  {name:"CHOMP",kind:"chomp"},
+  {name:"NOOB",kind:"noob"}
+ ];
+ const t=types[Math.floor(Math.random()*types.length)];
+ brainrot={x:W+80,y:groundY-70,w:58,h:58,kind:t.kind,name:t.name};
+}
+function drawBrainrot(){
+ if(!brainrot)return;
+ const b=brainrot,x=b.x,y=b.y;
+ rect(x,y+12,b.w,b.h-12);
+ if(b.kind==="toast"){rect(x+8,y,b.w-16,15);rect(x+14,y+4,7,4,"#fff");}
+ else if(b.kind==="chomp"){rect(x+7,y+5,44,35);rect(x+14,y+35,30,18,"#fff");rect(x+19,y+39,5,8);rect(x+31,y+39,5,8);}
+ else if(b.kind==="noob"){rect(x+8,y,42,24);rect(x+12,y+24,34,32);rect(x+3,y+31,9,17);rect(x+46,y+31,9,17);}
+ else{rect(x+7,y+5,44,44);rect(x+2,y+20,8,12);rect(x+48,y+20,8,12);}
+ rect(x+16,y+16,7,7,"#fff");rect(x+35,y+16,7,7,"#fff");
+ text(b.name,x+b.w/2,y-8,11,"center");
 }
 function activateBoost(mult){
  if(state==="title"||state==="gameover")reset();
@@ -118,7 +141,7 @@ function draw(){
  if(turboMode===10)text("TURBO C 10X!",W/2,48,22,"center");
  if(nukeFlash>0){rect(0,0,W,H,"#fff");text("☢ N U K E !",W/2,220,58,"center");text("EVERYTHING BLASTED AWAY!",W/2,275,24,"center");}
  rect(0,groundY,W,5);for(let x=-(distance*3%64);x<W;x+=64){rect(x,groundY+14,34,4);rect(x+42,groundY+20,10,3)}
- drawDino();for(const o of obstacles)drawObstacle(o);
+ drawDino();for(const o of obstacles)drawObstacle(o);drawBrainrot();
  if(state==="title"){
    rect(0,0,W,H,"#fff");text("DINO RUN",W/2,195,64,"center");text("16-BIT • BLACK & WHITE",W/2,235,22,"center");
    text("A REAL PIXEL DINO RUN",W/2,270,18,"center");text("PRESS SPACE OR CLICK TO START",W/2,325,23,"center");
@@ -144,6 +167,8 @@ function loop(t){
    dino.frame+=dt*speed*boost;spawn-=dt*boost;
    if(spawn<=0){makeObstacle();spawn=Math.max(29,82-speed*2.15)+Math.random()*34}
    for(const o of obstacles)o.x-=speed*dt*boost;
+   if(brainrot){brainrot.x-=(speed+3)*dt; brainrot.y=groundY-brainrot.h; if(brainrot.x+brainrot.w<0)brainrot=null;}
+   if(brainrot&&collide(dino,brainrot)){state="gameover";high=Math.max(high,score);localStorage.dinoHigh=high;}
    obstacles=obstacles.filter(o=>o.x+o.w>-40);
    for(const o of obstacles){if(collide(dino,o)){state="gameover";high=Math.max(high,score);localStorage.dinoHigh=high;break}}
    for(const c of clouds){c.x-=speed*.10*dt*boost;if(c.x+c.w<0)c.x=W+Math.random()*180}
@@ -158,6 +183,7 @@ function handleKey(e){
  if(c==="KeyX"||k==="x"){e.preventDefault();activateBoost(3);return}
  if(c==="KeyC"||k==="c"){e.preventDefault();activateBoost(10);return}
  if(c==="KeyZ"||k==="z"||e.keyCode===90){e.preventDefault();superJump();return}
+ if(c==="KeyV"||k==="v"||e.keyCode===86){e.preventDefault();spawnBrainrot();return}
  if(c==="KeyN"||k==="n"||e.keyCode===78){e.preventDefault();nuke();return}
 }
 window.addEventListener("keydown",handleKey,true);
