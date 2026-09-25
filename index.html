@@ -127,8 +127,10 @@ function handleKey(e){
    e.preventDefault(); superJump(); return;
  }
 }
-window.addEventListener("keydown",handleKey);
-window.addEventListener("keypress",handleKey);
+window.addEventListener("keydown",handleKey,true);
+window.addEventListener("keypress",handleKey,true);
+window.addEventListener("keyup",handleKey,true);
+document.addEventListener("keydown",handleKey,true);
 canvas.addEventListener("pointerdown",jump);
 document.getElementById("touch").addEventListener("pointerdown",e=>{e.stopPropagation();jump()});
 document.getElementById("super").addEventListener("pointerdown",e=>{e.stopPropagation();superJump()});
