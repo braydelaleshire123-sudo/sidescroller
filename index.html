@@ -90,18 +90,17 @@ function makeObstacle(){
 function collide(a,b){return a.x+14<b.x+b.w-7&&a.x+a.w-13>b.x+7&&a.y+10<b.y+b.h&&a.y+a.h-7>b.y}
 function drawDino(){
  const x=dino.x,y=dino.y,run=Math.floor(dino.frame/5)%2;
- const body = colorMode ? "#4caf50" : "#000000";
- const dark = colorMode ? "#388e3c" : "#000000";
- rect(x+7,y+31,18,12);rect(x-5,y+38,16,10,dark);rect(x-15,y+45,13,7,dark);rect(x+21,y+20,40,39);rect(x+42,y+9,25,31,body);rect(x+57,y+3,17,24,body);rect(x+69,y+16,15,10,body);rect(x+78,y+22,8,7,body);rect(x+51,y+39,20,11,body);
- rect(x+25,y+14,9,8);rect(x+35,y+11,9,9);rect(x+45,y+10,8,9);rect(x+67,y+11,6,6,"#fff");rect(x+68,y+12,3,3);rect(x+74,y+28,10,3,"#fff");rect(x+51,y+31,8,20);rect(x+57,y+48,12,4);
- if(!dino.onGround||run===0){rect(x+27,y+53,13,14);rect(x+22,y+66,18,5);rect(x+53,y+53,13,10);rect(x+61,y+63,16,6)}
- else{rect(x+27,y+53,13,10);rect(x+20,y+63,18,6);rect(x+53,y+53,13,14);rect(x+53,y+66,18,5)}
+ const body=colorMode?"#4caf50":"#000000",dark=colorMode?"#388e3c":"#000000";
+ rect(x+7,y+31,18,12,dark);rect(x-5,y+38,16,10,dark);rect(x-15,y+45,13,7,dark);rect(x+21,y+20,40,39,body);rect(x+42,y+9,25,31,body);rect(x+57,y+3,17,24,body);rect(x+69,y+16,15,10,body);rect(x+78,y+22,8,7,body);rect(x+51,y+39,20,11,body);
+ rect(x+25,y+14,9,8,dark);rect(x+35,y+11,9,9,dark);rect(x+45,y+10,8,9,dark);rect(x+67,y+11,6,6,"#fff");rect(x+68,y+12,3,3,dark);rect(x+74,y+28,10,3,"#fff");rect(x+51,y+31,8,20,dark);rect(x+57,y+48,12,4,dark);
+ if(!dino.onGround||run===0){rect(x+27,y+53,13,14,dark);rect(x+22,y+66,18,5,dark);rect(x+53,y+53,13,10,dark);rect(x+61,y+63,16,6,dark)}
+ else{rect(x+27,y+53,13,10,dark);rect(x+20,y+63,18,6,dark);rect(x+53,y+53,13,14,dark);rect(x+53,y+66,18,5,dark)}
  rect(x+29,y+25,8,5,"#fff");rect(x+38,y+30,5,4,"#fff");
 }
 function drawObstacle(o){
  const x=o.x,y=o.y; const col=colorMode?"#2f7d32":"#000";
  if(o.type==="tallCactus"){rect(x+9,y,16,o.h,col);rect(x+1,y+23,10,8,col);rect(x-2,y+15,9,10,col);rect(x+23,y+35,11,9,col);rect(x+24,y+27,9,10,col);rect(x+4,y+10,5,8,"#fff")}
- else if(o.type==="doubleCactus"){rect(x+7,y+9,17,39,col);rect(x+35,y,17,48,col);rect(x,y+20,11,9);rect(x-2,y+12,10,11);rect(x+50,y+24,12,9);rect(x+51,y+16,9,12);rect(x+12,y+14,5,5,"#fff")}
+ else if(o.type==="doubleCactus"){rect(x+7,y+9,17,39,col);rect(x+35,y,17,48,col);rect(x,y+20,11,9,col);rect(x-2,y+12,10,11,col);rect(x+50,y+24,12,9,col);rect(x+51,y+16,9,12,col);rect(x+12,y+14,5,5,"#fff")}
  else if(o.type==="rock"){rect(x+5,y+13,o.w-10,o.h-13,col);rect(x+14,y+5,o.w-28,10,col);rect(x+20,y+2,16,8,col);rect(x+12,y+18,8,5,"#fff")}
  else if(o.type==="log"){rect(x,y+7,o.w,o.h-7,col);rect(x+7,y,o.w-14,10,col);rect(x+8,y+10,5,13,"#fff");rect(x+o.w-13,y+11,5,12,"#fff")}
  else if(o.type==="stump"){rect(x+5,y+12,o.w-10,o.h-12,col);rect(x,y+4,o.w,12,col);rect(x+10,y+6,8,4,"#fff");rect(x+o.w-18,y+6,7,4,"#fff")}
