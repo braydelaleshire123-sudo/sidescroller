@@ -9,7 +9,7 @@
 body{display:flex;align-items:center;justify-content:center}
 #game{position:relative;width:min(100vw,1100px);height:min(100vh,600px);border:6px solid #000;background:#fff;overflow:hidden}
 canvas{width:100%;height:100%;display:block;image-rendering:pixelated}
-#hint{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);font-size:12px;text-align:center;pointer-events:none}
+#hint{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);font-size:12px;text-align:center;pointer-events:none}#zflash{position:absolute;left:50%;top:90px;transform:translateX(-50%);font:bold 24px "Courier New";pointer-events:none}
 #touch,#super{position:absolute;right:18px;bottom:18px;height:54px;border:4px solid #000;background:#fff;color:#000;font:bold 16px "Courier New";display:none}#touch{width:92px}#super{right:120px;width:150px}
 #super{display:block}@media(pointer:coarse){#touch,#super{display:block}}
 </style>
@@ -17,7 +17,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:pixelated}
 <body>
 <div id="game">
 <canvas id="c" width="1100" height="600"></canvas>
-<div id="hint">SPACE / ↑ / CLICK = JUMP • Z = SUPER JUMP! • X = 3X • C = 10X</div>
+<div id="hint">SPACE / ↑ / CLICK = JUMP • Z = SUPER JUMP! • X = 3X • C = 10X</div><div id="zflash"></div>
 <button id="touch">JUMP</button><button id="super">Z SUPER JUMP</button>
 </div>
 <script>
@@ -36,7 +36,7 @@ function reset(){
  state="play";
 }
 function jump(){if(state==="title"||state==="gameover"){reset();return}if(dino.onGround){dino.vy=-16.8;dino.onGround=false}}
-function superJump(){
+function superJump(){document.getElementById("zflash").textContent="Z SUPER JUMP!";setTimeout(()=>document.getElementById("zflash").textContent="",500);
  if(state==="title"||state==="gameover")reset();
  if(state!=="play")return;
  dino.y=groundY-dino.h-1;
@@ -131,6 +131,8 @@ window.addEventListener("keydown",handleKey,true);
 window.addEventListener("keypress",handleKey,true);
 window.addEventListener("keyup",handleKey,true);
 document.addEventListener("keydown",handleKey,true);
+document.onkeydown=handleKey;
+document.onkeypress=handleKey;
 canvas.addEventListener("pointerdown",jump);
 document.getElementById("touch").addEventListener("pointerdown",e=>{e.stopPropagation();jump()});
 document.getElementById("super").addEventListener("pointerdown",e=>{e.stopPropagation();superJump()});
