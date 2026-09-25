@@ -10,7 +10,7 @@ body{display:flex;align-items:center;justify-content:center}
 #game{position:relative;width:min(100vw,1100px);height:min(100vh,600px);border:6px solid #000;background:#fff;overflow:hidden}
 canvas{width:100%;height:100%;display:block;image-rendering:pixelated}
 #hint{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);font-size:12px;text-align:center;pointer-events:none}#zflash{position:absolute;left:50%;top:90px;transform:translateX(-50%);font:bold 24px "Courier New";pointer-events:none}
-#touch,#super{position:absolute;right:18px;bottom:18px;height:54px;border:4px solid #000;background:#fff;color:#000;font:bold 16px "Courier New";display:none}#touch{width:92px}#super{right:120px;width:150px}
+#music{position:absolute;left:18px;bottom:18px;height:44px;padding:0 14px;border:4px solid #000;background:#fff;color:#000;font:bold 14px "Courier New";z-index:5}#touch,#super{position:absolute;right:18px;bottom:18px;height:54px;border:4px solid #000;background:#fff;color:#000;font:bold 16px "Courier New";display:none}#touch{width:92px}#super{right:120px;width:150px}
 #super{display:block}@media(pointer:coarse){#touch,#super{display:block}}
 </style>
 </head>
@@ -18,22 +18,42 @@ canvas{width:100%;height:100%;display:block;image-rendering:pixelated}
 <div id="game">
 <canvas id="c" width="1100" height="600"></canvas>
 <div id="hint">SPACE / ↑ / CLICK = JUMP • Z = SUPER JUMP! • X = 3X • C = 10X</div><div id="zflash"></div>
-<button id="touch">JUMP</button><button id="super">Z SUPER JUMP</button>
+<button id="music">MUSIC: ON</button><button id="touch">JUMP</button><button id="super">Z SUPER JUMP</button>
 </div>
 <script>
 const canvas=document.getElementById("c"),ctx=canvas.getContext("2d"),W=1100,H=600;
 ctx.imageSmoothingEnabled=false;
 let state="title",distance=0,score=0,speed=7,high=Number(localStorage.dinoHigh||0);
 let last=0,spawn=0,groundY=475,obstacles=[],clouds=[];
-let turboMode=0,turboTime=0,lastSuperJump=0,nukeFlash=0,nukePower=0;
+let turboMode=0,turboTime=0,lastSuperJump=0,nukeFlash=0,nukePower=0,audioCtx=null,musicOn=true,musicTimer=null;
 const dino={x:145,y:0,w:82,h:72,vy:0,onGround:true,frame:0};
 function rect(x,y,w,h,fill="#000"){ctx.fillStyle=fill;ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))}
 function text(t,x,y,size=22,align="left"){ctx.fillStyle="#000";ctx.font=`bold ${size}px "Courier New"`;ctx.textAlign=align;ctx.fillText(t,x,y)}
+function startMusic(){
+ if(!musicOn)return;
+ try{
+  if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==="suspended")audioCtx.resume();
+  if(musicTimer)return;
+  const notes=[261.63,329.63,392,329.63,293.66,349.23,440,349.23];
+  let i=0;
+  musicTimer=setInterval(()=>{
+   if(!musicOn||!audioCtx)return;
+   const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+   o.type="square";o.frequency.value=notes[i++%notes.length];g.gain.setValueAtTime(0.035,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.18);
+   o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+0.2);
+  },220);
+ }catch(e){}
+}
+function stopMusic(){
+ if(musicTimer){clearInterval(musicTimer);musicTimer=null;}
+}
 function reset(){
  distance=0;score=0;speed=7;spawn=0;obstacles=[];clouds=[];turboMode=0;turboTime=0;
  dino.y=groundY-dino.h;dino.vy=0;dino.onGround=true;dino.frame=0;
  for(let i=0;i<6;i++)clouds.push({x:80+i*210+Math.random()*120,y:65+Math.random()*110,w:55+Math.random()*65});
  state="play";
+ startMusic();
 }
 function jump(){if(state==="title"||state==="gameover"){reset();return}if(dino.onGround){dino.vy=-16.8;dino.onGround=false}}
 function superJump(){
@@ -142,6 +162,11 @@ function handleKey(e){
 }
 window.addEventListener("keydown",handleKey,true);
 canvas.addEventListener("pointerdown",jump);
+document.getElementById("music").addEventListener("pointerdown",e=>{
+ e.stopPropagation();musicOn=!musicOn;
+ e.currentTarget.textContent=musicOn?"MUSIC: ON":"MUSIC: OFF";
+ if(musicOn)startMusic();else stopMusic();
+});
 document.getElementById("touch").addEventListener("pointerdown",e=>{e.stopPropagation();jump()});
 document.getElementById("super").addEventListener("pointerdown",e=>{e.stopPropagation();superJump()});
 requestAnimationFrame(loop);
