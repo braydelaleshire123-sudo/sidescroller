@@ -112,11 +112,12 @@ function loop(t){
  draw();requestAnimationFrame(loop);
 }
 addEventListener("keydown",e=>{
- const key=(e.key||"").toLowerCase();
- if(e.code==="Space"||e.code==="ArrowUp"){e.preventDefault();jump();return}
- if(e.code==="KeyX"||key==="x"){e.preventDefault();activateBoost(3);return}
- if(e.code==="KeyC"||key==="c"){e.preventDefault();activateBoost(10);return}
- if(e.code==="KeyZ"||key==="z"){e.preventDefault();superJump();return}
+ const k=String(e.key||"").toLowerCase();
+ const c=String(e.code||"");
+ if(c==="Space"||c==="ArrowUp"||k===" "||k==="arrowup"){e.preventDefault();jump();return}
+ if(c==="KeyX"||k==="x"){e.preventDefault();activateBoost(3);return}
+ if(c==="KeyC"||k==="c"){e.preventDefault();activateBoost(10);return}
+ if(c==="KeyZ"||k==="z"||e.keyCode===90){e.preventDefault();superJump();return}
 });
 canvas.addEventListener("pointerdown",jump);
 document.getElementById("touch").addEventListener("pointerdown",e=>{e.stopPropagation();jump()});
