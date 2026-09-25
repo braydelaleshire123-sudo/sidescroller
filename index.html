@@ -70,9 +70,10 @@ function spawnBrainrot(){
 function drawBrainrot(){
  if(!brainrot)return;
  const b=brainrot,x=b.x,y=b.y;
- rect(x+18,y+20,26,42);rect(x+10,y+5,42,20);rect(x+16,y+2,30,6);
- rect(x+20,y+25,6,7,"#fff");rect(x+36,y+25,6,7,"#fff");rect(x+27,y+32,5,4,"#fff");rect(x+31,y+42,9,4,"#fff");
- rect(x+14,y+59,10,17);rect(x+39,y+59,10,17);rect(x+7,y+30,11,28);rect(x+44,y+30,11,28);rect(x+2,y+47,10,5);rect(x+50,y+47,10,5);
+ const body=colorMode?"#8b5a2b":"#000000",dark=colorMode?"#5d3a1a":"#000000";
+ rect(x+18,y+20,26,42,body);rect(x+10,y+5,42,20,body);rect(x+16,y+2,30,6,body);
+ rect(x+20,y+25,6,7,"#fff");rect(x+36,y+25,6,7,"#fff");rect(x+27,y+32,5,4,dark);rect(x+31,y+42,9,4,dark);
+ rect(x+14,y+59,10,17,dark);rect(x+39,y+59,10,17,dark);rect(x+7,y+30,11,28,dark);rect(x+44,y+30,11,28,dark);rect(x+2,y+47,10,5,dark);rect(x+50,y+47,10,5,dark);
  text(b.name,x+b.w/2,y-8,10,"center");
 }
 function activateBoost(mult){if(state==="title"||state==="gameover")reset();if(state!=="play")return;turboMode=mult;turboTime=8}
@@ -98,7 +99,7 @@ function drawDino(){
  rect(x+29,y+25,8,5,"#fff");rect(x+38,y+30,5,4,"#fff");
 }
 function drawObstacle(o){
- const x=o.x,y=o.y; const col=colorMode?"#2f7d32":"#000"; const spikeCol="#777";
+ const x=o.x,y=o.y; const col=colorMode?"#2f7d32":"#000"; const spikeCol=colorMode?"#777777":"#000000";
  if(o.type==="tallCactus"){rect(x+9,y,16,o.h,col);rect(x+1,y+23,10,8,col);rect(x-2,y+15,9,10,col);rect(x+23,y+35,11,9,col);rect(x+24,y+27,9,10,col);rect(x+4,y+10,5,8,"#fff")}
  else if(o.type==="doubleCactus"){rect(x+7,y+9,17,39,col);rect(x+35,y,17,48,col);rect(x,y+20,11,9,col);rect(x-2,y+12,10,11,col);rect(x+50,y+24,12,9,col);rect(x+51,y+16,9,12,col);rect(x+12,y+14,5,5,"#fff")}
  else if(o.type==="rock"){rect(x+5,y+13,o.w-10,o.h-13,col);rect(x+14,y+5,o.w-28,10,col);rect(x+20,y+2,16,8,col);rect(x+12,y+18,8,5,"#fff")}
