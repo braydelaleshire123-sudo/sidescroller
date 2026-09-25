@@ -112,7 +112,7 @@ function draw(){
  if(colorMode){rect(0,0,W,H,"#8ed6ff");rect(0,320,W,155,"#9bd36a");rect(0,groundY,W,H-groundY,"#d8b36a");for(let i=0;i<8;i++){const mx=i*170-((distance*.15)%170);rect(mx,300-(i%2)*18,110,22,"#72ad59");rect(mx+35,280-(i%2)*18,45,25,"#72ad59");}}
 
 
- for(const c of clouds){rect(c.x,c.y,c.w,6);rect(c.x+9,c.y-6,c.w-18,6);rect(c.x+18,c.y-11,c.w-36,5)}
+ for(const c of clouds){if(colorMode){rect(c.x,c.y,c.w,6,"#fff");rect(c.x+9,c.y-6,c.w-18,6,"#fff");rect(c.x+18,c.y-11,c.w-36,5,"#fff")}else{rect(c.x,c.y,c.w,6);rect(c.x+9,c.y-6,c.w-18,6);rect(c.x+18,c.y-11,c.w-36,5)}}
  text("DINO RUN",30,45,24);text("DIST "+String(Math.floor(distance)).padStart(5,"0"),W-30,45,20,"right");text("HI "+String(high).padStart(5,"0"),W-30,70,16,"right");text("SPEED "+speed.toFixed(1),30,70,16);
  if(turboMode===3)text("TURBO 3X!",W/2,48,22,"center");if(turboMode===10)text("TURBO C 10X!",W/2,48,22,"center");
  if(nukeFlash>0){rect(0,0,W,H,"#fff");text("☢ N U K E !",W/2,220,58,"center");text("EVERYTHING BLASTED AWAY!",W/2,275,24,"center")}
