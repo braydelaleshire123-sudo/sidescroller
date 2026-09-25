@@ -5,19 +5,19 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>DINO RUN 16-BIT</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#7ec8ff;color:#10233a;font-family:"Courier New",monospace;overflow:hidden}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#fff;color:#000;font-family:"Courier New",monospace;overflow:hidden}
 body{display:flex;align-items:center;justify-content:center}
- #game{position:relative;width:min(100vw,1100px);height:min(100vh,600px);border:6px solid #16324f;background:#9fddff;overflow:hidden}
+ #game{position:relative;width:min(100vw,1100px);height:min(100vh,600px);border:6px solid #000;background:#fff;overflow:hidden}
 canvas{width:100%;height:100%;display:block;image-rendering:pixelated}
 #hint{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);font-size:12px;text-align:center;pointer-events:none}#zflash{position:absolute;left:50%;top:90px;transform:translateX(-50%);font:bold 24px "Courier New";pointer-events:none}
-#music{position:absolute;left:18px;bottom:18px;height:44px;padding:0 14px;border:4px solid #16324f;background:#f7f1d5;color:#16324f;font:bold 14px "Courier New";z-index:5}#touch,#super{position:absolute;right:18px;bottom:18px;height:54px;border:4px solid #000;background:#fff;color:#000;font:bold 16px "Courier New";display:none}#touch{width:92px}#super{right:120px;width:150px}
+#music{position:absolute;left:18px;bottom:18px;height:44px;padding:0 14px;border:4px solid #000;background:#fff;color:#000;font:bold 14px "Courier New";z-index:5}#touch,#super{position:absolute;right:18px;bottom:18px;height:54px;border:4px solid #000;background:#fff;color:#000;font:bold 16px "Courier New";display:none}#touch{width:92px}#super{right:120px;width:150px}
 #super{display:block}@media(pointer:coarse){#touch,#super{display:block}}
 </style>
 </head>
 <body>
 <div id="game">
 <canvas id="c" width="1100" height="600"></canvas>
-<div id="hint">SPACE / ↑ / CLICK = JUMP • Z = SUPER JUMP! • X = 3X • C = 10X • V = TUNG TUNG TUNG SAHUR • N = NUKE</div><div id="zflash"></div>
+<div id="hint">SPACE / ↑ / CLICK = JUMP • Z = SUPER JUMP! • X = 3X • C = 10X • V = TUNG TUNG TUNG SAHUR • N = NUKE • B = COLOR</div><div id="zflash"></div>
 <button id="music">MUSIC: ON</button><button id="touch">JUMP</button><button id="super">Z SUPER JUMP</button>
 </div>
 <script>
@@ -25,10 +25,10 @@ const canvas=document.getElementById("c"),ctx=canvas.getContext("2d"),W=1100,H=6
 ctx.imageSmoothingEnabled=false;
 let state="title",distance=0,score=0,speed=7,high=Number(localStorage.dinoHigh||0);
 let last=0,spawn=0,groundY=475,obstacles=[],clouds=[];
-let turboMode=0,turboTime=0,lastSuperJump=0,nukeFlash=0,nukePower=0,nukeTimer=0,audioCtx=null,musicOn=true,musicTimer=null,brainrot=null;
+let turboMode=0,turboTime=0,lastSuperJump=0,nukeFlash=0,nukePower=0,nukeTimer=0,audioCtx=null,musicOn=true,musicTimer=null,brainrot=null,colorMode=false;
 const dino={x:145,y:0,w:82,h:72,vy:0,onGround:true,frame:0};
-function rect(x,y,w,h,fill="#18324a"){ctx.fillStyle=fill;ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))}
-function text(t,x,y,size=22,align="left"){ctx.fillStyle="#18324a";ctx.font=`bold ${size}px "Courier New"`;ctx.textAlign=align;ctx.fillText(t,x,y)}
+function rect(x,y,w,h,fill="#000"){ctx.fillStyle=fill;ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))}
+function text(t,x,y,size=22,align="left"){ctx.fillStyle="#000";ctx.font=`bold ${size}px "Courier New"`;ctx.textAlign=align;ctx.fillText(t,x,y)}
 function startMusic(){
  if(!musicOn)return;
  try{
@@ -90,14 +90,14 @@ function makeObstacle(){
 function collide(a,b){return a.x+14<b.x+b.w-7&&a.x+a.w-13>b.x+7&&a.y+10<b.y+b.h&&a.y+a.h-7>b.y}
 function drawDino(){
  const x=dino.x,y=dino.y,run=Math.floor(dino.frame/5)%2;
- rect(x+7,y+31,18,12,"#388e3c");rect(x-5,y+38,16,10,"#388e3c");rect(x-15,y+45,13,7,"#388e3c");rect(x+21,y+20,40,39,"#4caf50");rect(x+42,y+9,25,31,"#4caf50");rect(x+57,y+3,17,24,"#4caf50");rect(x+69,y+16,15,10,"#4caf50");rect(x+78,y+22,8,7,"#4caf50");rect(x+51,y+39,20,11,"#4caf50");
+ rect(x+7,y+31,18,12);rect(x-5,y+38,16,10,"#388e3c");rect(x-15,y+45,13,7,"#388e3c");rect(x+21,y+20,40,39);rect(x+42,y+9,25,31,"#4caf50");rect(x+57,y+3,17,24,"#4caf50");rect(x+69,y+16,15,10,"#4caf50");rect(x+78,y+22,8,7,"#4caf50");rect(x+51,y+39,20,11,"#4caf50");
  rect(x+25,y+14,9,8);rect(x+35,y+11,9,9);rect(x+45,y+10,8,9);rect(x+67,y+11,6,6,"#fff");rect(x+68,y+12,3,3);rect(x+74,y+28,10,3,"#fff");rect(x+51,y+31,8,20);rect(x+57,y+48,12,4);
  if(!dino.onGround||run===0){rect(x+27,y+53,13,14);rect(x+22,y+66,18,5);rect(x+53,y+53,13,10);rect(x+61,y+63,16,6)}
  else{rect(x+27,y+53,13,10);rect(x+20,y+63,18,6);rect(x+53,y+53,13,14);rect(x+53,y+66,18,5)}
  rect(x+29,y+25,8,5,"#fff");rect(x+38,y+30,5,4,"#fff");
 }
 function drawObstacle(o){
- const x=o.x,y=o.y; const col={tallCactus:"#2e8b57",doubleCactus:"#2e8b57",rock:"#777",log:"#8b5a2b",stump:"#7b4a21",spikes:"#b52b2b"}[o.type]||"#555";
+ const x=o.x,y=o.y; const col="#000";
  if(o.type==="tallCactus"){rect(x+9,y,16,o.h,col);rect(x+1,y+23,10,8,col);rect(x-2,y+15,9,10,col);rect(x+23,y+35,11,9,col);rect(x+24,y+27,9,10,col);rect(x+4,y+10,5,8,"#fff")}
  else if(o.type==="doubleCactus"){rect(x+7,y+9,17,39,col);rect(x+35,y,17,48,col);rect(x,y+20,11,9);rect(x-2,y+12,10,11);rect(x+50,y+24,12,9);rect(x+51,y+16,9,12);rect(x+12,y+14,5,5,"#fff")}
  else if(o.type==="rock"){rect(x+5,y+13,o.w-10,o.h-13,col);rect(x+14,y+5,o.w-28,10,col);rect(x+20,y+2,16,8,col);rect(x+12,y+18,8,5,"#fff")}
@@ -107,19 +107,17 @@ function drawObstacle(o){
 }
 function draw(){
  ctx.clearRect(0,0,W,H);
- rect(0,0,W,H,"#8ed6ff");
- rect(0,320,W,155,"#9bd36a");
- rect(0,groundY,W,H-groundY,"#d8b36a");
- for(let i=0;i<8;i++){const mx=i*170-((distance*.15)%170);rect(mx,300-(i%2)*18,110,22,"#72ad59");rect(mx+35,280-(i%2)*18,45,25,"#72ad59");}
+ if(colorMode){rect(0,0,W,H,"#8ed6ff");rect(0,320,W,155,"#9bd36a");rect(0,groundY,W,H-groundY,"#d8b36a");for(let i=0;i<8;i++){const mx=i*170-((distance*.15)%170);rect(mx,300-(i%2)*18,110,22,"#72ad59");rect(mx+35,280-(i%2)*18,45,25,"#72ad59");}}
 
- for(const c of clouds){rect(c.x,c.y,c.w,6,"#fff");rect(c.x+9,c.y-6,c.w-18,6,"#fff");rect(c.x+18,c.y-11,c.w-36,5,"#fff")}
+
+ for(const c of clouds){rect(c.x,c.y,c.w,6);rect(c.x+9,c.y-6,c.w-18,6);rect(c.x+18,c.y-11,c.w-36,5)}
  text("DINO RUN",30,45,24);text("DIST "+String(Math.floor(distance)).padStart(5,"0"),W-30,45,20,"right");text("HI "+String(high).padStart(5,"0"),W-30,70,16,"right");text("SPEED "+speed.toFixed(1),30,70,16);
  if(turboMode===3)text("TURBO 3X!",W/2,48,22,"center");if(turboMode===10)text("TURBO C 10X!",W/2,48,22,"center");
- if(nukeFlash>0){rect(0,0,W,H,"#fff176");text("☢ N U K E !",W/2,220,58,"center");text("EVERYTHING BLASTED AWAY!",W/2,275,24,"center")}
- rect(0,groundY,W,5,"#355c2a");for(let x=-(distance*3%64);x<W;x+=64){rect(x,groundY+14,34,4,"#b58b4a");rect(x+42,groundY+20,10,3,"#b58b4a")}
- drawDino();for(const o of obstacles)drawObstacle(o);drawBrainrot();
- if(state==="title"){rect(0,0,W,H,"#8ed6ff");text("DINO RUN",W/2,195,64,"center");text("16-BIT • FULL COLOR",W/2,235,22,"center");text("A REAL PIXEL DINO RUN",W/2,270,18,"center");text("PRESS SPACE OR CLICK TO START",W/2,325,23,"center");text("JUMP THE CACTI, ROCKS, LOGS & SPIKES",W/2,365,16,"center");text("X = 3X SUPER SPEED",W/2,400,20,"center");text("C = 10X SUPER SPEED",W/2,430,20,"center");text("Z = SUPER JUMP!!!",W/2,460,20,"center");text("V = TUNG TUNG TUNG SAHUR",W/2,490,18,"center");text("N = NUKE BLAST",W/2,520,18,"center")}
- if(state==="gameover"){rect(0,0,W,H,"#8ed6ff");text("GAME OVER",W/2,220,58,"center");text("DISTANCE: "+Math.floor(distance),W/2,265,23,"center");text("SPEED REACHED: "+speed.toFixed(1),W/2,295,17,"center");text("PRESS SPACE / CLICK TO RUN AGAIN",W/2,345,20,"center")}
+ if(nukeFlash>0){rect(0,0,W,H,"#fff");text("☢ N U K E !",W/2,220,58,"center");text("EVERYTHING BLASTED AWAY!",W/2,275,24,"center")}
+ rect(0,groundY,W,5);for(let x=-(distance*3%64);x<W;x+=64){rect(x,groundY+14,34,4);rect(x+42,groundY+20,10,3)}
+ if(colorMode){ctx.save();}drawDino();for(const o of obstacles)drawObstacle(o);drawBrainrot();if(colorMode){ctx.restore();}
+ if(state==="title"){rect(0,0,W,H,"#fff");text("DINO RUN",W/2,195,64,"center");text("16-BIT • BLACK & WHITE",W/2,235,22,"center");text("A REAL PIXEL DINO RUN",W/2,270,18,"center");text("PRESS SPACE OR CLICK TO START",W/2,325,23,"center");text("JUMP THE CACTI, ROCKS, LOGS & SPIKES",W/2,365,16,"center");text("X = 3X SUPER SPEED",W/2,400,20,"center");text("C = 10X SUPER SPEED",W/2,430,20,"center");text("Z = SUPER JUMP!!!",W/2,460,20,"center");text("V = TUNG TUNG TUNG SAHUR",W/2,490,18,"center");text("N = NUKE BLAST",W/2,520,18,"center")}
+ if(state==="gameover"){rect(0,0,W,H,"#fff");text("GAME OVER",W/2,220,58,"center");text("DISTANCE: "+Math.floor(distance),W/2,265,23,"center");text("SPEED REACHED: "+speed.toFixed(1),W/2,295,17,"center");text("PRESS SPACE / CLICK TO RUN AGAIN",W/2,345,20,"center")}
 }
 function loop(t){
  const dt=Math.min((t-last)/16.67,2);last=t;
@@ -148,6 +146,7 @@ function loop(t){
  }
  draw();requestAnimationFrame(loop);
 }
+function toggleColor(){colorMode=!colorMode;document.getElementById("game").style.background=colorMode?"#9fddff":"#fff"}
 function handleKey(e){
  if(e.type!=="keydown" || e.repeat)return;const k=String(e.key||"").toLowerCase();const c=String(e.code||"");
  if(c==="Space"||c==="ArrowUp"||k===" "||k==="arrowup"){e.preventDefault();jump();return}
@@ -156,6 +155,7 @@ function handleKey(e){
  if(c==="KeyZ"||k==="z"||e.keyCode===90){e.preventDefault();superJump();return}
  if(c==="KeyV"||k==="v"||e.keyCode===86){e.preventDefault();spawnBrainrot();return}
  if(c==="KeyN"||k==="n"||e.keyCode===78){e.preventDefault();nuke();return}
+ if(c==="KeyB"||k==="b"||e.keyCode===66){e.preventDefault();toggleColor();return}
 }
 window.addEventListener("keydown",handleKey,true);
 canvas.addEventListener("pointerdown",jump);
