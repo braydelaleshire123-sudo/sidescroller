@@ -25,7 +25,7 @@ const canvas=document.getElementById("c"),ctx=canvas.getContext("2d"),W=1100,H=6
 ctx.imageSmoothingEnabled=false;
 let state="title",distance=0,score=0,speed=7,high=Number(localStorage.dinoHigh||0);
 let last=0,spawn=0,groundY=475,obstacles=[],clouds=[];
-let turboMode=0,turboTime=0,lastSuperJump=0;
+let turboMode=0,turboTime=0,lastSuperJump=0,nukeFlash=0,nukePower=0;
 const dino={x:145,y:0,w:82,h:72,vy:0,onGround:true,frame:0};
 function rect(x,y,w,h,fill="#000"){ctx.fillStyle=fill;ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))}
 function text(t,x,y,size=22,align="left"){ctx.fillStyle="#000";ctx.font=`bold ${size}px "Courier New"`;ctx.textAlign=align;ctx.fillText(t,x,y)}
@@ -47,6 +47,11 @@ function superJump(){
  dino.y=groundY-dino.h-1;
  dino.vy=-45;
  dino.onGround=false;
+}
+function nuke(){
+ if(state==="title"||state==="gameover")reset();
+ if(state!=="play")return;
+ nukeFlash=1;nukePower=1;obstacles=[];dino.vy=-120;dino.y=groundY-dino.h-1;turboMode=0;turboTime=0;
 }
 function activateBoost(mult){
  if(state==="title"||state==="gameover")reset();
@@ -91,6 +96,7 @@ function draw(){
  text("HI "+String(high).padStart(5,"0"),W-30,70,16,"right");text("SPEED "+speed.toFixed(1),30,70,16);
  if(turboMode===3)text("TURBO 3X!",W/2,48,22,"center");
  if(turboMode===10)text("TURBO C 10X!",W/2,48,22,"center");
+ if(nukeFlash>0){rect(0,0,W,H,"#fff");text("☢ N U K E !",W/2,220,58,"center");text("EVERYTHING BLASTED AWAY!",W/2,275,24,"center");}
  rect(0,groundY,W,5);for(let x=-(distance*3%64);x<W;x+=64){rect(x,groundY+14,34,4);rect(x+42,groundY+20,10,3)}
  drawDino();for(const o of obstacles)drawObstacle(o);
  if(state==="title"){
@@ -107,6 +113,8 @@ function draw(){
 function loop(t){
  const dt=Math.min((t-last)/16.67,2);last=t;
  if(state==="play"){
+   if(nukeFlash>0)nukeFlash=Math.max(0,nukeFlash-dt/30);
+   if(nukePower>0){nukePower=Math.max(0,nukePower-dt/90);dino.x=Math.min(W+5000,dino.x+85*dt);distance+=900*dt;}
    if(turboMode){turboTime-=dt/60;if(turboTime<=0){turboMode=0;turboTime=0}}
    const boost=turboMode||1;
    distance+=speed*.018*dt*boost;score=Math.floor(distance);
@@ -130,6 +138,7 @@ function handleKey(e){
  if(c==="KeyX"||k==="x"){e.preventDefault();activateBoost(3);return}
  if(c==="KeyC"||k==="c"){e.preventDefault();activateBoost(10);return}
  if(c==="KeyZ"||k==="z"||e.keyCode===90){e.preventDefault();superJump();return}
+ if(c==="KeyN"||k==="n"||e.keyCode===78){e.preventDefault();nuke();return}
 }
 window.addEventListener("keydown",handleKey,true);
 canvas.addEventListener("pointerdown",jump);
