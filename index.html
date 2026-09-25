@@ -36,7 +36,7 @@ function reset(){
  state="play";
 }
 function jump(){if(state==="title"||state==="gameover"){reset();return}if(dino.onGround){dino.vy=-16.8;dino.onGround=false}}
-function superJump(){if(state==="title"||state==="gameover"){reset();return}if(dino.onGround){dino.vy=-34;dino.onGround=false}}
+function superJump(){if(state==="title"||state==="gameover"){reset();return}dino.vy=-34;dino.onGround=false}
 function activateBoost(mult){
  if(state==="title"||state==="gameover")reset();
  if(state!=="play")return;
