@@ -27,6 +27,8 @@ let state="title",distance=0,score=0,speed=7,high=Number(localStorage.dinoHigh||
 let last=0,spawn=0,groundY=475,obstacles=[],clouds=[];
 let turboMode=0,turboTime=0,lastSuperJump=0,nukeFlash=0,nukePower=0,nukeTimer=0,audioCtx=null,musicOn=true,musicTimer=null,brainrot=null,colorMode=false;
 const dino={x:145,y:0,w:82,h:72,vy:0,onGround:true,frame:0};
+const dino2={x:300,y:0,w:82,h:72,vy:0,onGround:true,frame:0};
+const keys={a:false,d:false,left:false,right:false};
 function rect(x,y,w,h,fill="#000"){ctx.fillStyle=fill;ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))}
 function text(t,x,y,size=22,align="left"){ctx.fillStyle="#000";ctx.font=`bold ${size}px "Courier New"`;ctx.textAlign=align;ctx.fillText(t,x,y)}
 function startMusic(){
@@ -47,11 +49,12 @@ function startMusic(){
 function stopMusic(){if(musicTimer){clearInterval(musicTimer);musicTimer=null;}}
 function reset(){
  distance=0;score=0;speed=7;spawn=0;obstacles=[];clouds=[];turboMode=0;turboTime=0;nukePower=0;nukeTimer=0;
- dino.x=145;dino.y=groundY-dino.h;dino.vy=0;dino.onGround=true;dino.frame=0;brainrot=null;
+ dino.x=145;dino.y=groundY-dino.h;dino.vy=0;dino.onGround=true;dino.frame=0;
+ dino2.x=300;dino2.y=groundY-dino2.h;dino2.vy=0;dino2.onGround=true;dino2.frame=0;brainrot=null;
  for(let i=0;i<6;i++)clouds.push({x:80+i*210+Math.random()*120,y:65+Math.random()*110,w:55+Math.random()*65});
  state="play";startMusic();
 }
-function jump(){if(state==="title"||state==="gameover"){reset();return}if(dino.onGround){dino.vy=-16.8;dino.onGround=false}}
+function jump(player=dino){if(state==="title"||state==="gameover"){reset();return}if(player.onGround){player.vy=-16.8;player.onGround=false}}
 function superJump(){
  const now=performance.now();if(now-lastSuperJump<250)return;lastSuperJump=now;
  document.getElementById("zflash").textContent="Z SUPER JUMP!";setTimeout(()=>document.getElementById("zflash").textContent="",500);
@@ -61,7 +64,8 @@ function superJump(){
 function nuke(){
  if(state==="title"||state==="gameover")reset();if(state!=="play")return;
  nukeFlash=1;nukePower=1;nukeTimer=2.6;obstacles=[];brainrot=null;
- dino.x=145;dino.vy=-32;dino.y=groundY-dino.h-1;dino.onGround=false;turboMode=0;turboTime=0;
+ dino.x=145;dino.vy=-32;dino.y=groundY-dino.h-1;dino.onGround=false;
+ dino2.x=300;dino2.vy=-32;dino2.y=groundY-dino2.h-1;dino2.onGround=false;turboMode=0;turboTime=0;
 }
 function spawnBrainrot(){
  if(state==="title"||state==="gameover")reset();if(state!=="play")return;
@@ -89,14 +93,15 @@ function makeObstacle(){
  if(Math.random()<.18&&speed<18)obstacles.push({x:W+145,y:groundY-30,w:42,h:30,type:"rock"});
 }
 function collide(a,b){return a.x+14<b.x+b.w-7&&a.x+a.w-13>b.x+7&&a.y+10<b.y+b.h&&a.y+a.h-7>b.y}
-function drawDino(){
- const x=dino.x,y=dino.y,run=Math.floor(dino.frame/5)%2;
+function drawDino(player=dino,label="P1"){
+ const x=player.x,y=player.y,run=Math.floor(player.frame/5)%2;
  const body=colorMode?"#4caf50":"#000000",dark=colorMode?"#388e3c":"#000000";
  rect(x+7,y+31,18,12,body);rect(x-5,y+38,16,10,body);rect(x-15,y+45,13,7,body);rect(x+21,y+20,40,39,body);rect(x+42,y+9,25,31,body);rect(x+57,y+3,17,24,body);rect(x+69,y+16,15,10,body);rect(x+78,y+22,8,7,body);rect(x+51,y+39,20,11,body);
  rect(x+25,y+14,9,8,body);rect(x+35,y+11,9,9,body);rect(x+45,y+10,8,9,body);rect(x+67,y+11,6,6,"#fff");rect(x+68,y+12,3,3,dark);rect(x+74,y+28,10,3,"#fff");rect(x+51,y+31,8,20,body);rect(x+57,y+48,12,4,body);
- if(!dino.onGround||run===0){rect(x+27,y+53,13,14,dark);rect(x+22,y+66,18,5,dark);rect(x+53,y+53,13,10,dark);rect(x+61,y+63,16,6,dark)}
+ if(!player.onGround||run===0{rect(x+27,y+53,13,14,dark);rect(x+22,y+66,18,5,dark);rect(x+53,y+53,13,10,dark);rect(x+61,y+63,16,6,dark)}
  else{rect(x+27,y+53,13,10,dark);rect(x+20,y+63,18,6,dark);rect(x+53,y+53,13,14,dark);rect(x+53,y+66,18,5,dark)}
  rect(x+29,y+25,8,5,"#fff");rect(x+38,y+30,5,4,"#fff");
+ text(label,x+35,y-8,12,"center");
 }
 function drawObstacle(o){
  const x=o.x,y=o.y; const col=colorMode?"#2f7d32":"#000";
@@ -117,8 +122,8 @@ function draw(){
  if(turboMode===3)text("TURBO 3X!",W/2,48,22,"center");if(turboMode===10)text("TURBO C 10X!",W/2,48,22,"center");
  if(nukeFlash>0){rect(0,0,W,H,"#fff");text("☢ N U K E !",W/2,220,58,"center");text("EVERYTHING BLASTED AWAY!",W/2,275,24,"center")}
  rect(0,groundY,W,5);for(let x=-(distance*3%64);x<W;x+=64){rect(x,groundY+14,34,4);rect(x+42,groundY+20,10,3)}
- if(colorMode){ctx.save();}drawDino();for(const o of obstacles)drawObstacle(o);drawBrainrot();if(colorMode){ctx.restore();}
- if(state==="title"){rect(0,0,W,H,"#fff");text("DINO RUN",W/2,195,64,"center");text("16-BIT • BLACK & WHITE",W/2,235,22,"center");text("A REAL PIXEL DINO RUN",W/2,270,18,"center");text("PRESS SPACE OR CLICK TO START",W/2,325,23,"center");text("JUMP THE CACTI, ROCKS, LOGS & SPIKES",W/2,365,16,"center");text("X = 3X SUPER SPEED",W/2,400,20,"center");text("C = 10X SUPER SPEED",W/2,430,20,"center");text("Z = SUPER JUMP!!!",W/2,460,20,"center");text("V = TUNG TUNG TUNG SAHUR",W/2,490,18,"center");text("N = NUKE BLAST",W/2,520,18,"center")}
+ if(colorMode){ctx.save();}drawDino(dino,"P1");drawDino(dino2,"P2");for(const o of obstacles)drawObstacle(o);drawBrainrot();if(colorMode){ctx.restore();}
+ if(state==="title"){rect(0,0,W,H,"#fff");text("DINO RUN",W/2,195,64,"center");text("16-BIT • BLACK & WHITE",W/2,235,22,"center");text("A REAL PIXEL DINO RUN",W/2,270,18,"center");text("PRESS SPACE OR CLICK TO START",W/2,325,23,"center");text("2 PLAYER: P1 WASD  •  P2 ARROWS",W/2,555,20,"center");text("JUMP THE CACTI, ROCKS, LOGS & SPIKES",W/2,365,16,"center");text("X = 3X SUPER SPEED",W/2,400,20,"center");text("C = 10X SUPER SPEED",W/2,430,20,"center");text("Z = SUPER JUMP!!!",W/2,460,20,"center");text("V = TUNG TUNG TUNG SAHUR",W/2,490,18,"center");text("N = NUKE BLAST",W/2,520,18,"center")}
  if(state==="gameover"){rect(0,0,W,H,"#fff");text("GAME OVER",W/2,220,58,"center");text("DISTANCE: "+Math.floor(distance),W/2,265,23,"center");text("SPEED REACHED: "+speed.toFixed(1),W/2,295,17,"center");text("PRESS SPACE / CLICK TO RUN AGAIN",W/2,345,20,"center")}
 }
 function loop(t){
@@ -130,20 +135,26 @@ function loop(t){
      nukeTimer-=dt/60;
      dino.x=Math.min(1000,dino.x+18*dt);
      distance+=120*dt;
-     if(nukeTimer<=0){nukePower=0;nukeTimer=0;dino.x=145;dino.y=groundY-dino.h;dino.vy=0;dino.onGround=true}
+     if(nukeTimer<=0){nukePower=0;nukeTimer=0;dino.x=145;dino.y=groundY-dino.h;dino.vy=0;dino.onGround=true;
+       dino2.x=300;dino2.y=groundY-dino2.h;dino2.vy=0;dino2.onGround=true}
    }
    if(turboMode){turboTime-=dt/60;if(turboTime<=0){turboMode=0;turboTime=0}}
    const boost=turboMode||1;distance+=speed*.018*dt*boost;score=Math.floor(distance);
    speed=Math.min(turboMode===10?230:turboMode===3?69:23,7+distance/95);
+   if(keys.a)dino.x-=7*dt;if(keys.d)dino.x+=7*dt;
+   if(keys.left)dino2.x-=7*dt;if(keys.right)dino2.x+=7*dt;
+   dino.x=Math.max(35,Math.min(470,dino.x));dino2.x=Math.max(35,Math.min(470,dino2.x));
    dino.vy+=.86*dt;dino.y+=dino.vy*dt;
+   dino2.vy+=.86*dt;dino2.y+=dino2.vy*dt;
    if(dino.y>=groundY-dino.h){dino.y=groundY-dino.h;dino.vy=0;dino.onGround=true}
-   dino.frame+=dt*speed*boost;spawn-=dt*boost;
+   if(dino2.y>=groundY-dino2.h){dino2.y=groundY-dino2.h;dino2.vy=0;dino2.onGround=true}
+   dino.frame+=dt*speed*boost;dino2.frame+=dt*speed*boost;spawn-=dt*boost;
    if(spawn<=0){makeObstacle();spawn=Math.max(29,82-speed*2.15)+Math.random()*34}
    for(const o of obstacles)o.x-=speed*dt*boost;
    if(brainrot){brainrot.x-=(speed+3)*dt;if(brainrot.x+brainrot.w<0)brainrot=null}
-   if(brainrot&&collide(dino,brainrot)){state="gameover";high=Math.max(high,score);localStorage.dinoHigh=high}
+   if((brainrot&&collide(dino,brainrot))||(brainrot&&collide(dino2,brainrot))){state="gameover";high=Math.max(high,score);localStorage.dinoHigh=high}
    obstacles=obstacles.filter(o=>o.x+o.w>-40);
-   for(const o of obstacles){if(collide(dino,o)){state="gameover";high=Math.max(high,score);localStorage.dinoHigh=high;break}}
+   for(const o of obstacles){if(collide(dino,o)||collide(dino2,o)){state="gameover";high=Math.max(high,score);localStorage.dinoHigh=high;break}}
    for(const c of clouds){c.x-=speed*.10*dt*boost;if(c.x+c.w<0)c.x=W+Math.random()*180}
  }
  draw();requestAnimationFrame(loop);
@@ -151,7 +162,13 @@ function loop(t){
 function toggleColor(){colorMode=!colorMode;document.getElementById("game").style.background=colorMode?"#9fddff":"#fff";draw()}
 function handleKey(e){
  if(e.type!=="keydown" || e.repeat)return;const k=String(e.key||"").toLowerCase();const c=String(e.code||"");
- if(c==="Space"||c==="ArrowUp"||k===" "||k==="arrowup"){e.preventDefault();jump();return}
+ if(c==="KeyW"){e.preventDefault();jump(dino);return}
+ if(c==="ArrowUp"){e.preventDefault();jump(dino2);return}
+ if(c==="KeyA"){e.preventDefault();keys.a=true;return}
+ if(c==="KeyD"){e.preventDefault();keys.d=true;return}
+ if(c==="ArrowLeft"){e.preventDefault();keys.left=true;return}
+ if(c==="ArrowRight"){e.preventDefault();keys.right=true;return}
+ if(c==="Space"||k===" "){e.preventDefault();jump(dino);return}
  if(c==="KeyX"||k==="x"){e.preventDefault();activateBoost(3);return}
  if(c==="KeyC"||k==="c"){e.preventDefault();activateBoost(10);return}
  if(c==="KeyZ"||k==="z"||e.keyCode===90){e.preventDefault();superJump();return}
@@ -159,7 +176,13 @@ function handleKey(e){
  if(c==="KeyN"||k==="n"||e.keyCode===78){e.preventDefault();nuke();return}
  if(c==="KeyB"||k==="b"||e.keyCode===66){e.preventDefault();toggleColor();return}
 }
+function handleKeyUp(e){
+ const c=String(e.code||"");
+ if(c==="KeyA")keys.a=false;if(c==="KeyD")keys.d=false;
+ if(c==="ArrowLeft")keys.left=false;if(c==="ArrowRight")keys.right=false;
+}
 window.addEventListener("keydown",handleKey,true);
+window.addEventListener("keyup",handleKeyUp,true);
 canvas.addEventListener("pointerdown",jump);
 document.getElementById("music").addEventListener("pointerdown",e=>{e.stopPropagation();musicOn=!musicOn;e.currentTarget.textContent=musicOn?"MUSIC: ON":"MUSIC: OFF";if(musicOn)startMusic();else stopMusic()});
 document.getElementById("touch").addEventListener("pointerdown",e=>{e.stopPropagation();jump()});
