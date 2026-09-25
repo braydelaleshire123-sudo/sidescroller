@@ -17,7 +17,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:pixelated}
 <body>
 <div id="game">
 <canvas id="c" width="1100" height="600"></canvas>
-<div id="hint">SPACE / ↑ / CLICK = JUMP • X = 3X • XL = 10X</div>
+<div id="hint">SPACE / ↑ / CLICK = JUMP • X = 3X • C = 10X</div>
 <button id="touch">JUMP</button>
 </div>
 <script>
@@ -25,25 +25,21 @@ const canvas=document.getElementById("c"),ctx=canvas.getContext("2d"),W=1100,H=6
 ctx.imageSmoothingEnabled=false;
 let state="title",distance=0,score=0,speed=7,high=Number(localStorage.dinoHigh||0);
 let last=0,spawn=0,groundY=475,obstacles=[],clouds=[];
-let turboMode=0,turboTime=0,command="";
+let turboMode=0,turboTime=0;
 const dino={x:145,y:0,w:82,h:72,vy:0,onGround:true,frame:0};
-
 function rect(x,y,w,h,fill="#000"){ctx.fillStyle=fill;ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))}
 function text(t,x,y,size=22,align="left"){ctx.fillStyle="#000";ctx.font=`bold ${size}px "Courier New"`;ctx.textAlign=align;ctx.fillText(t,x,y)}
 function reset(){
- distance=0;score=0;speed=7;spawn=0;obstacles=[];clouds=[];turboMode=0;turboTime=0;command="";
+ distance=0;score=0;speed=7;spawn=0;obstacles=[];clouds=[];turboMode=0;turboTime=0;
  dino.y=groundY-dino.h;dino.vy=0;dino.onGround=true;dino.frame=0;
  for(let i=0;i<6;i++)clouds.push({x:80+i*210+Math.random()*120,y:65+Math.random()*110,w:55+Math.random()*65});
  state="play";
 }
-function jump(){
- if(state==="title"||state==="gameover"){reset();return}
- if(dino.onGround){dino.vy=-16.8;dino.onGround=false}
-}
+function jump(){if(state==="title"||state==="gameover"){reset();return}if(dino.onGround){dino.vy=-16.8;dino.onGround=false}}
 function activateBoost(mult){
  if(state==="title"||state==="gameover")reset();
  if(state!=="play")return;
- turboMode=mult;turboTime=8;command="";
+ turboMode=mult;turboTime=8;
 }
 function makeObstacle(){
  const r=Math.random();let o;
@@ -59,12 +55,10 @@ function makeObstacle(){
 function collide(a,b){return a.x+14<b.x+b.w-7&&a.x+a.w-13>b.x+7&&a.y+10<b.y+b.h&&a.y+a.h-7>b.y}
 function drawDino(){
  const x=dino.x,y=dino.y,run=Math.floor(dino.frame/5)%2;
- rect(x+7,y+31,18,12);rect(x-5,y+38,16,10);rect(x-15,y+45,13,7);
- rect(x+21,y+20,40,39);rect(x+42,y+9,25,31);rect(x+57,y+3,17,24);
- rect(x+69,y+16,15,10);rect(x+78,y+22,8,7);rect(x+51,y+39,20,11);
- rect(x+25,y+14,9,8);rect(x+35,y+11,9,9);rect(x+45,y+10,8,9);
- rect(x+67,y+11,6,6,"#fff");rect(x+68,y+12,3,3);rect(x+74,y+28,10,3,"#fff");
- rect(x+51,y+31,8,20);rect(x+57,y+48,12,4);
+ rect(x+7,y+31,18,12);rect(x-5,y+38,16,10);rect(x-15,y+45,13,7);rect(x+21,y+20,40,39);
+ rect(x+42,y+9,25,31);rect(x+57,y+3,17,24);rect(x+69,y+16,15,10);rect(x+78,y+22,8,7);rect(x+51,y+39,20,11);
+ rect(x+25,y+14,9,8);rect(x+35,y+11,9,9);rect(x+45,y+10,8,9);rect(x+67,y+11,6,6,"#fff");rect(x+68,y+12,3,3);
+ rect(x+74,y+28,10,3,"#fff");rect(x+51,y+31,8,20);rect(x+57,y+48,12,4);
  if(!dino.onGround||run===0){rect(x+27,y+53,13,14);rect(x+22,y+66,18,5);rect(x+53,y+53,13,10);rect(x+61,y+63,16,6)}
  else{rect(x+27,y+53,13,10);rect(x+20,y+63,18,6);rect(x+53,y+53,13,14);rect(x+53,y+66,18,5)}
  rect(x+29,y+25,8,5,"#fff");rect(x+38,y+30,5,4,"#fff");
@@ -84,15 +78,14 @@ function draw(){
  text("DINO RUN",30,45,24);text("DIST "+String(Math.floor(distance)).padStart(5,"0"),W-30,45,20,"right");
  text("HI "+String(high).padStart(5,"0"),W-30,70,16,"right");text("SPEED "+speed.toFixed(1),30,70,16);
  if(turboMode===3)text("TURBO 3X!",W/2,48,22,"center");
- if(turboMode===10)text("TURBO XL 10X!",W/2,48,22,"center");
- rect(0,groundY,W,5);
- for(let x=-(distance*3%64);x<W;x+=64){rect(x,groundY+14,34,4);rect(x+42,groundY+20,10,3)}
+ if(turboMode===10)text("TURBO C 10X!",W/2,48,22,"center");
+ rect(0,groundY,W,5);for(let x=-(distance*3%64);x<W;x+=64){rect(x,groundY+14,34,4);rect(x+42,groundY+20,10,3)}
  drawDino();for(const o of obstacles)drawObstacle(o);
  if(state==="title"){
    rect(0,0,W,H,"#fff");text("DINO RUN",W/2,195,64,"center");text("16-BIT • BLACK & WHITE",W/2,235,22,"center");
    text("A REAL PIXEL DINO RUN",W/2,270,18,"center");text("PRESS SPACE OR CLICK TO START",W/2,325,23,"center");
    text("JUMP THE CACTI, ROCKS, LOGS & SPIKES",W/2,365,16,"center");text("X = 3X SUPER SPEED",W/2,400,20,"center");
-   text("TYPE XL = 10X SUPER SPEED",W/2,430,18,"center");
+   text("C = 10X SUPER SPEED",W/2,430,20,"center");
  }
  if(state==="gameover"){
    rect(0,0,W,H,"#fff");text("GAME OVER",W/2,220,58,"center");text("DISTANCE: "+Math.floor(distance),W/2,265,23,"center");
@@ -108,8 +101,7 @@ function loop(t){
    speed=Math.min(turboMode===10?230:turboMode===3?69:23,7+distance/95);
    dino.vy+=.86*dt;dino.y+=dino.vy*dt;
    if(dino.y>=groundY-dino.h){dino.y=groundY-dino.h;dino.vy=0;dino.onGround=true}
-   dino.frame+=dt*speed*boost;
-   spawn-=dt*boost;
+   dino.frame+=dt*speed*boost;spawn-=dt*boost;
    if(spawn<=0){makeObstacle();spawn=Math.max(29,82-speed*2.15)+Math.random()*34}
    for(const o of obstacles)o.x-=speed*dt*boost;
    obstacles=obstacles.filter(o=>o.x+o.w>-40);
@@ -121,10 +113,7 @@ function loop(t){
 addEventListener("keydown",e=>{
  if(e.code==="Space"||e.code==="ArrowUp"){e.preventDefault();jump();return}
  if(e.code==="KeyX"){e.preventDefault();activateBoost(3);return}
- if(e.key.length===1&&/[a-z]/i.test(e.key)){
-   command=(command+e.key.toUpperCase()).slice(-2);
-   if(command==="XL")activateBoost(10);
- }
+ if(e.code==="KeyC"){e.preventDefault();activateBoost(10);return}
 });
 canvas.addEventListener("pointerdown",jump);
 document.getElementById("touch").addEventListener("pointerdown",e=>{e.stopPropagation();jump()});
